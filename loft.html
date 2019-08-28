@@ -1,0 +1,59 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+//    isAllTrue([1, 2, 3, 4, 5], n => n < 10) // вернет true
+//    isAllTrue([100, 2, 3, 4, 5], n => n < 10) // вернет false
+
+//    isAllTrue([1, 2, 3, 4, 5], n => n < 10) // вернет true
+//    isAllTrue([100, 2, 3, 4, 5], '%(') // вернет false
+   isAllTrue([], n => n < 10) // error
+   
+//    isAllTrue({}, n => n < 10) // error
+//    isAllTrue(':(', n => n < 10) // error
+
+
+
+   function isAllTrue(array, fn) {
+
+// debugger
+try {
+  // let isArray = typearray
+
+  if ((array.length === 0) || !Array.isArray(array)){
+      throw new Error('empty array')
+  };
+
+  // if ( !Array.isArray(array) ) {
+  //     throw new Error('empty array')
+  // }
+
+
+  let isFunc = typeof fn;
+
+  if ( isFunc != 'function' ) {
+     throw new Error('fn is not a function')
+  }
+
+  let result = true;
+
+  for (let i = 0; i < array.length; i++) {
+      result = result && fn(array[i]);
+  }
+  return result;
+
+
+    } catch (e) {
+        return e;
+    }
+}
+
+    </script>
+    
+</body>
+</html>
