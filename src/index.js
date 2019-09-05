@@ -119,6 +119,17 @@ function deleteTextNodes(where) {
  должно быть преобразовано в <span><div><b></b></div><p></p></span>
 */
 function deleteTextNodesRecursive(where) {
+    for (let node of where.childNodes) {
+        if (node.nodeType == 3) {
+            where.removeChild(node);
+        }
+    }
+
+    for (let node of where.childNodes) {
+        if ( node.hasChildNodes() ) {
+            deleteTextNodesRecursive(node);
+        }
+    }
 }
 
 /*
@@ -142,6 +153,29 @@ function deleteTextNodesRecursive(where) {
  }
 */
 function collectDOMStat(root) {
+    let stat = {
+        tags: {
+        },
+        classes: {},
+        texts: 0
+    }
+
+    for (let node of root.childNodes) {
+        if (node.nodeType == 3) {
+            stat.texts =+ 1
+        }
+
+        // if (node.classList.length !== 0) {
+        //     let counter = {};
+        //     let start = 0
+
+        //     stat.classes = [...node.classList].reduce(function(counter, class) {
+        //       return {counter[class] : start++}
+        //     });
+        // }
+    }
+
+    return stat;
 }
 
 /*
