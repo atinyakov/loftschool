@@ -14,6 +14,7 @@ function createDivWithText(text) {
     let el = document.createElement('div');
 
     el.textContent = text;
+
     return el;
 }
 
@@ -49,15 +50,15 @@ function prepend(what, where) {
  findAllPSiblings(document.body) // функция должна вернуть массив с элементами div и span т.к. следующим соседом этих элементов является элемент с тегом P
 */
 function findAllPSiblings(where) {
-  var result = [];
+    var result = [];
 
-  for (var child of where.children) {
-      if ((child.nextElementSibling !== null) && (child.nextElementSibling.tagName === "P")) {
-          result.push(child);
-      }
-  }
+    for (var child of where.children) {
+        if ((child.nextElementSibling !== null) && (child.nextElementSibling.tagName === 'P')) {
+            result.push(child);
+        }
+    }
 
-  return result;
+    return result;
 }
 
 /*
@@ -78,13 +79,13 @@ function findAllPSiblings(where) {
  findError(document.body) // функция должна вернуть массив с элементами 'привет' и 'loftschool'
 */
 function findError(where) {
-  var result = [];
+    var result = [];
 
-  for (var child of where.children) {
-      result.push(child.innerText);
-  }
+    for (var child of where.children) {
+        result.push(child.innerText);
+    }
 
-  return result;
+    return result;
 }
 
 /*
@@ -160,20 +161,29 @@ function collectDOMStat(root) {
         texts: 0
     }
 
-    for (let node of root.childNodes) {
-        if (node.nodeType == 3) {
-            stat.texts =+ 1
+    function check(root) {
+        for (let node of root.childNodes) {
+            if (node.nodeType === 3) {
+                stat.texts++
+            } else if (node.nodeType === 1) {
+                if (node.tagName in stat.tags) {
+                    stat.tags[node.tagName]++;
+                } else {
+                    stat.tags[node.tagName] = 1;
+                }                
+            
+                for (const className of node.classList) {
+                    if (className in stat.classes) {
+                        stat.classes[className]++;
+                    } else {
+                        stat.classes[className] = 1;
+                    }
+                }
+            }
+            check(node);
         }
-
-        // if (node.classList.length !== 0) {
-        //     let counter = {};
-        //     let start = 0
-
-        //     stat.classes = [...node.classList].reduce(function(counter, class) {
-        //       return {counter[class] : start++}
-        //     });
-        // }
     }
+    check(root);
 
     return stat;
 }
@@ -211,6 +221,27 @@ function collectDOMStat(root) {
  }
 */
 function observeChildNodes(where, fn) {
+  
+    function callback(allmutations) {
+        allmutations.forEach( function(mutation) {
+
+            if ((mutation.type === 'childList') && (mutation.removedNodes.length !== 0)) {
+                fn({ type: 'remove', nodes: [...mutation.removedNodes] });
+            }
+            if ((mutation.type === 'childList') && (mutation.addedNodes.length !== 0)) {
+                fn({ type: 'insert', nodes: [...mutation.addedNodes] });
+            }
+        });
+    }
+
+    let observer = new MutationObserver( callback );
+
+    var options = {
+        'childList': true,
+        'subtree ': true
+    }
+
+    observer.observe( where, options );
 
 }
 
