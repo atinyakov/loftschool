@@ -9,7 +9,9 @@
    delayPromise(3) // вернет promise, который будет разрешен через 3 секунды
  */
 function delayPromise(seconds) {
-    return new Promise((resolve) => { setTimeout(resolve, seconds * 1000)})
+    return new Promise((resolve) => {
+        setTimeout(resolve, seconds * 1000);
+    })
 }
 
 /*
@@ -34,11 +36,14 @@ function loadAndSortTowns() {
             .then(json => {
                 json.sort((a, b) => {
                     if (a.name > b.name) {
+                        
                         return 1;
                     }
                     if (a.name < b.name) {
+
                         return -1;
                     }
+
                     return 0;
                 });
 
