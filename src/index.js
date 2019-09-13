@@ -1,58 +1,156 @@
-/* ДЗ 6 - Асинхронность и работа с сетью */
-
 /*
- Задание 1:
-
- Функция должна возвращать Promise, который должен быть разрешен через указанное количество секунду
-
- Пример:
-   delayPromise(3) // вернет promise, который будет разрешен через 3 секунды
- */
-function delayPromise(seconds) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, seconds * 1000);
-    })
-}
-
-/*
- Задание 2:
-
- 2.1: Функция должна вернуть Promise, который должен быть разрешен с массивом городов в качестве значения
-
- Массив городов можно получить отправив асинхронный запрос по адресу
+ Страница должна предварительно загрузить список городов из
  https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
+ и отсортировать в алфавитном порядке.
 
- 2.2: Элементы полученного массива должны быть отсортированы по имени города
+ При вводе в текстовое поле, под ним должен появляться список тех городов,
+ в названии которых, хотя бы частично, есть введенное значение.
+ Регистр символов учитываться не должен, то есть 'Moscow' и 'moscow' - одинаковые названия.
+
+ Во время загрузки городов, на странице должна быть надпись 'Загрузка...'
+ После окончания загрузки городов, надпись исчезает и появляется текстовое поле.
+
+ Разметку смотрите в файле towns-content.hbs
+
+ Запрещено использовать сторонние библиотеки. Разрешено пользоваться только тем, что встроено в браузер
+
+ *** Часть со звездочкой ***
+ Если загрузка городов не удалась (например, отключился интернет или сервер вернул ошибку),
+ то необходимо показать надпись 'Не удалось загрузить города' и кнопку 'Повторить'.
+ При клике на кнопку, процесс загрузки повторяется заново
+ */
+
+/*
+ homeworkContainer - это контейнер для всех ваших домашних заданий
+ Если вы создаете новые html-элементы и добавляете их на страницу, то добавляйте их только в этот контейнер
 
  Пример:
-   loadAndSortTowns().then(towns => console.log(towns)) // должна вывести в консоль отсортированный массив городов
+   const newDiv = document.createElement('div');
+   homeworkContainer.appendChild(newDiv);
  */
-function loadAndSortTowns() {
-    return new Promise(resolve => {
+const homeworkContainer = document.querySelector('#homework-container');
+
+/*
+ Функция должна вернуть Promise, который должен быть разрешен с массивом городов в качестве значения
+
+ Массив городов пожно получить отправив асинхронный запрос по адресу
+ https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
+ */
+function loadTowns() {
+    return new Promise((resolve) => {
         const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
 
         fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    return response;
+                }
+                throw new Error('Не удалось загрузить города');
+            })
             .then(response => response.json())
             .then(json => {
                 json.sort((a, b) => {
                     if (a.name > b.name) {
-                        
                         return 1;
                     }
                     if (a.name < b.name) {
-
                         return -1;
                     }
 
                     return 0;
                 });
 
-                resolve(json)
+                resolve(json);
             })
-    })
+            .catch(error => {
+                loadingBlock.textContent = error.message;
+                loadingBlock.appendChild(button);
+            })
+
+    });
 }
 
+const render = (towns) => {
+    let list = document.createElement('ul');
+
+    list.classList.add('list');
+
+    towns.forEach(el => {
+        let listItem = document.createElement('li');
+
+        listItem.classList.add('list__item');
+        listItem.textContent = el.name;
+        list.appendChild(listItem);
+    })
+
+    return list;
+}
+
+let towns;
+
+loadTowns()
+    .then(response => {
+        homeworkContainer.appendChild(render(response));
+        loadingBlock.style.display = 'none';
+        filterBlock.style.display = 'block';
+        filterResult.style.display = 'block';
+
+        return towns = response;
+    })
+
+/*
+ Функция должна проверять встречается ли подстрока chunk в строке full
+ Проверка должна происходить без учета регистра символов
+
+ Пример:
+   isMatching('Moscow', 'moscow') // true
+   isMatching('Moscow', 'mosc') // true
+   isMatching('Moscow', 'cow') // true
+   isMatching('Moscow', 'SCO') // true
+   isMatching('Moscow', 'Moscov') // false
+ */
+function isMatching(full, chunk) {
+    let re = new RegExp(chunk, 'gi');
+
+    return re.test(full);
+}
+
+const search = (chunk) => {
+    const list = document.querySelector('.list');
+    let result = []
+
+    homeworkContainer.removeChild(list);
+
+    towns.forEach(town => {
+        if (isMatching(town.name, chunk)) {
+            result.push({ 'name': town.name });
+        }
+    });
+
+    homeworkContainer.appendChild(render(result));
+}
+
+/* Блок с надписью 'Загрузка' */
+const loadingBlock = homeworkContainer.querySelector('#loading-block');
+/* Блок с текстовым полем и результатом поиска */
+const filterBlock = homeworkContainer.querySelector('#filter-block');
+/* Текстовое поле для поиска по городам */
+const filterInput = homeworkContainer.querySelector('#filter-input');
+/* Блок с результатами поиска */
+const filterResult = homeworkContainer.querySelector('#filter-result');
+
+const button = document.createElement('button');
+
+button.innerHTML = 'Повторить';
+button.addEventListener('click', loadTowns)
+
+filterInput.addEventListener('keyup', function(evt) {
+    // это обработчик нажатия кливиш в текстовом поле
+    evt.preventDefault();
+    search(evt.target.value);
+})
+
 export {
-    delayPromise,
-    loadAndSortTowns
+    loadTowns,
+    isMatching
 };

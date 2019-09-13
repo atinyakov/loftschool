@@ -12,7 +12,7 @@ describe('ДЗ 6.2 - Фильтр городов', () => {
     homeworkContainer.id = 'homework-container';
     homeworkContainer.innerHTML = template();
     document.body.appendChild(homeworkContainer);
-    filterPage = require('../src/towns');
+    filterPage = require('../src/index');
 
     describe('Функциональное тестирование', () => {
         describe('isMatching', () => {
