@@ -37,37 +37,29 @@ const homeworkContainer = document.querySelector('#homework-container');
  https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
  */
 function loadTowns() {
-    return new Promise((resolve) => {
-        const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
+    const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
 
-        fetch(url)
-            .then(response => {
-                if (response.ok) {
-                    return response;
-                }
-                throw new Error('Не удалось загрузить города');
-            })
-            .then(response => response.json())
-            .then(json => {
-                json.sort((a, b) => {
-                    if (a.name > b.name) {
-                        return 1;
-                    }
-                    if (a.name < b.name) {
-                        return -1;
-                    }
+    return fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response;
+            }
+            throw new Error('Не удалось загрузить города');
+        })
+        .then(response => response.json())
+        .then(json => {
+            json.sort((a, b) => {
+                let res = (a.name > b.name) ? 1 : -1; 
 
-                    return 0;
-                });
+                return res;
+            });
 
-                resolve(json);
-            })
-            .catch(error => {
-                loadingBlock.textContent = error.message;
-                loadingBlock.appendChild(button);
-            })
-
-    });
+            return json;
+        })
+        .catch(error => {
+            loadingBlock.textContent = error.message;
+            loadingBlock.appendChild(button);
+        })
 }
 
 const render = (towns) => {
@@ -77,9 +69,11 @@ const render = (towns) => {
 
     towns.forEach(el => {
         let listItem = document.createElement('li');
+        let paragraph = document.createElement('p');
 
         listItem.classList.add('list__item');
-        listItem.textContent = el.name;
+        paragraph.textContent = el.name;
+        listItem.appendChild(paragraph);
         list.appendChild(listItem);
     })
 
