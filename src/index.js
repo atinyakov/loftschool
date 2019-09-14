@@ -1,58 +1,117 @@
-/* ДЗ 6 - Асинхронность и работа с сетью */
+/*
+ ДЗ 7 - Создать редактор cookie с возможностью фильтрации
+
+ 7.1: На странице должна быть таблица со списком имеющихся cookie. Таблица должна иметь следующие столбцы:
+   - имя
+   - значение
+   - удалить (при нажатии на кнопку, выбранная cookie удаляется из браузера и таблицы)
+
+ 7.2: На странице должна быть форма для добавления новой cookie. Форма должна содержать следующие поля:
+   - имя
+   - значение
+   - добавить (при нажатии на кнопку, в браузер и таблицу добавляется новая cookie с указанным именем и значением)
+
+ Если добавляется cookie с именем уже существующей cookie, то ее значение в браузере и таблице должно быть обновлено
+
+ 7.3: На странице должно быть текстовое поле для фильтрации cookie
+ В таблице должны быть только те cookie, в имени или значении которых, хотя бы частично, есть введенное значение
+ Если в поле фильтра пусто, то должны выводиться все доступные cookie
+ Если добавляемая cookie не соответсвует фильтру, то она должна быть добавлена только в браузер, но не в таблицу
+ Если добавляется cookie, с именем уже существующей cookie и ее новое значение не соответствует фильтру,
+ то ее значение должно быть обновлено в браузере, а из таблицы cookie должна быть удалена
+
+ Запрещено использовать сторонние библиотеки. Разрешено пользоваться только тем, что встроено в браузер
+ */
 
 /*
- Задание 1:
-
- Функция должна возвращать Promise, который должен быть разрешен через указанное количество секунду
-
- Пример:
-   delayPromise(3) // вернет promise, который будет разрешен через 3 секунды
- */
-function delayPromise(seconds) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, seconds * 1000);
-    })
-}
-
-/*
- Задание 2:
-
- 2.1: Функция должна вернуть Promise, который должен быть разрешен с массивом городов в качестве значения
-
- Массив городов можно получить отправив асинхронный запрос по адресу
- https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
-
- 2.2: Элементы полученного массива должны быть отсортированы по имени города
+ homeworkContainer - это контейнер для всех ваших домашних заданий
+ Если вы создаете новые html-элементы и добавляете их на страницу, то добавляйте их только в этот контейнер
 
  Пример:
-   loadAndSortTowns().then(towns => console.log(towns)) // должна вывести в консоль отсортированный массив городов
+   const newDiv = document.createElement('div');
+   homeworkContainer.appendChild(newDiv);
  */
-function loadAndSortTowns() {
-    return new Promise(resolve => {
-        const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
+const homeworkContainer = document.querySelector('#homework-container');
+// текстовое поле для фильтрации cookie
+const filterNameInput = homeworkContainer.querySelector('#filter-name-input');
+// текстовое поле с именем cookie
+// const addNameInput = homeworkContainer.querySelector('#add-name-input');
+// текстовое поле со значением cookie
+// const addValueInput = homeworkContainer.querySelector('#add-value-input');
+// кнопка "добавить cookie"
+const addButton = homeworkContainer.querySelector('#add-button');
+// таблица со списком cookie
+const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-        fetch(url)
-            .then(response => response.json())
-            .then(json => {
-                json.sort((a, b) => {
-                    if (a.name > b.name) {
-                        
-                        return 1;
-                    }
-                    if (a.name < b.name) {
+filterNameInput.addEventListener('keyup', function() {
+    // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
+});
 
-                        return -1;
-                    }
+function createButton () {
+    let button = document.createElement('button');
 
-                    return 0;
-                });
+    button.textContent = 'Удалить';
+    button.addEventListener('click', (evt) => {
+        let key = evt.target.closest('tr').firstChild.textContent;
 
-                resolve(json)
-            })
+        document.cookie = `${key} = ''; max-age=0`;
+        evt.target.closest('tbody').removeChild(evt.target.closest('tr'));
     })
+
+    return button;
 }
 
-export {
-    delayPromise,
-    loadAndSortTowns
-};
+function createTableItem () {
+    let tr = document.createElement('tr');
+
+    [...arguments].forEach(arg => {
+        let td = document.createElement('td');
+
+        if (typeof arg === 'function') {
+            td.appendChild(arg());
+        } else {
+            td.textContent = arg;
+        }
+        tr.appendChild(td);
+    })
+
+    listTable.appendChild(tr);
+}
+
+let cookies;
+
+function parseCookies () {
+    cookies = document.cookie.split('; ');
+    cookies = cookies.reduce((prev, next) => { 
+        let [name, value] = next.split('='); 
+
+        prev[name] = value;
+
+        return prev;
+    }, {});
+    
+    return cookies;
+}
+
+if (document.cookie.length !== 0) {
+    let currentCookies = parseCookies();
+
+    for (let name in currentCookies) {
+        if ({}.hasOwnProperty.call(currentCookies, name)) { 
+            createTableItem(name, currentCookies[name], createButton);
+        }
+    }
+}
+
+addButton.addEventListener('click', (evt) => {
+    // здесь можно обработать нажатие на кнопку "добавить cookie"
+    evt.preventDefault();
+    let name = document.querySelector('#add-name-input');
+    let value = document.querySelector('#add-value-input');
+
+    document.cookie = `${name.value} = ${value.value}`;
+
+    createTableItem(name.value, value.value, createButton);
+    name.value = '';
+    value.value = '';
+});
