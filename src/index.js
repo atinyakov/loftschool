@@ -1,110 +1,150 @@
-/* ДЗ 1 - Функции */
+/*
+ Страница должна предварительно загрузить список городов из
+ https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
+ и отсортировать в алфавитном порядке.
+
+ При вводе в текстовое поле, под ним должен появляться список тех городов,
+ в названии которых, хотя бы частично, есть введенное значение.
+ Регистр символов учитываться не должен, то есть 'Moscow' и 'moscow' - одинаковые названия.
+
+ Во время загрузки городов, на странице должна быть надпись 'Загрузка...'
+ После окончания загрузки городов, надпись исчезает и появляется текстовое поле.
+
+ Разметку смотрите в файле towns-content.hbs
+
+ Запрещено использовать сторонние библиотеки. Разрешено пользоваться только тем, что встроено в браузер
+
+ *** Часть со звездочкой ***
+ Если загрузка городов не удалась (например, отключился интернет или сервер вернул ошибку),
+ то необходимо показать надпись 'Не удалось загрузить города' и кнопку 'Повторить'.
+ При клике на кнопку, процесс загрузки повторяется заново
+ */
 
 /*
- Задание 1:
-
- 1.1: Добавьте к функции параметр с любым именем
- 1.2: Функция должна возвращать аргумент, переданный ей в качестве параметра
+ homeworkContainer - это контейнер для всех ваших домашних заданий
+ Если вы создаете новые html-элементы и добавляете их на страницу, то добавляйте их только в этот контейнер
 
  Пример:
-   returnFirstArgument(10) вернет 10
-   returnFirstArgument('привет') вернет `привет`
-
- Другими словами: функция должна возвращать в неизменном виде то, что поступает ей на вход
+   const newDiv = document.createElement('div');
+   homeworkContainer.appendChild(newDiv);
  */
-function returnFirstArgument(data) {
-    return data;
-}
+const homeworkContainer = document.querySelector('#homework-container');
 
 /*
- Задание 2:
+ Функция должна вернуть Promise, который должен быть разрешен с массивом городов в качестве значения
 
- 2.1: Функция должна возвращать сумму переданных аргументов
-
- Пример:
-   sumWithDefaults(10, 20) вернет 30
-   sumWithDefaults(2, 4) вернет 6
-
- 2.1 *: Значение по умолчанию для второго аргумента должно быть равно 100
-
- Пример:
-   sumWithDefaults(10) вернет 110
+ Массив городов пожно получить отправив асинхронный запрос по адресу
+ https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
  */
-function sumWithDefaults(a, b = 100) {
-    return a + b;
+function loadTowns() {
+    const url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json';
+
+    return fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response;
+            }
+            throw new Error('Не удалось загрузить города');
+        })
+        .then(response => response.json())
+        .then(json => {
+            json.sort((a, b) => {
+                let res = (a.name > b.name) ? 1 : -1; 
+
+                return res;
+            });
+
+            return json;
+        })
+        .catch(error => {
+            loadingBlock.textContent = error.message;
+            loadingBlock.appendChild(button);
+        })
 }
+
+const render = (towns) => {
+    let list = document.createElement('ul');
+
+    list.classList.add('list');
+
+    towns.forEach(el => {
+        let listItem = document.createElement('li');
+        let paragraph = document.createElement('p');
+
+        listItem.classList.add('list__item');
+        paragraph.textContent = el.name;
+        listItem.appendChild(paragraph);
+        list.appendChild(listItem);
+    })
+
+    return list;
+}
+
+let towns;
+
+loadTowns()
+    .then(response => {
+        homeworkContainer.appendChild(render(response));
+        loadingBlock.style.display = 'none';
+        filterBlock.style.display = 'block';
+        filterResult.style.display = 'block';
+
+        return towns = response;
+    })
 
 /*
- Задание 3:
-
- Функция должна принимать другую функцию и возвращать результат вызова этой функции
-
- Пример:
-   returnFnResult(() => 'привет') вернет 'привет'
- */
-function returnFnResult(fn) {
-    return fn();
-}
-
-/*
- Задание 4:
-
- Функция должна принимать число и возвращать новую функцию (F)
- При вызове функции F, переданное ранее число должно быть увеличено на единицу и возвращено из F
+ Функция должна проверять встречается ли подстрока chunk в строке full
+ Проверка должна происходить без учета регистра символов
 
  Пример:
-   var f = returnCounter(10);
-
-   console.log(f()); // выведет 11
-   console.log(f()); // выведет 12
-   console.log(f()); // выведет 13
+   isMatching('Moscow', 'moscow') // true
+   isMatching('Moscow', 'mosc') // true
+   isMatching('Moscow', 'cow') // true
+   isMatching('Moscow', 'SCO') // true
+   isMatching('Moscow', 'Moscov') // false
  */
-function returnCounter(number = 0) {
-    let start = number;
+function isMatching(full, chunk) {
+    let re = new RegExp(chunk, 'gi');
 
-    return function () {
-      
-        return ++start;
-    }
+    return re.test(full);
 }
 
-/*
- Задание 5 *:
+const search = (chunk) => {
+    const list = document.querySelector('.list');
+    let result = []
 
- Функция должна возвращать все переданные ей аргументы в виде массива
- Количество переданных аргументов заранее неизвестно
+    homeworkContainer.removeChild(list);
 
- Пример:
-   returnArgumentsArray(1, 2, 3) вернет [1, 2, 3]
- */
-function returnArgumentsArray(...rest) {
-    return rest;
+    towns.forEach(town => {
+        if (isMatching(town.name, chunk)) {
+            result.push({ 'name': town.name });
+        }
+    });
+
+    homeworkContainer.appendChild(render(result));
 }
 
-/*
- Задание 6 *:
+/* Блок с надписью 'Загрузка' */
+const loadingBlock = homeworkContainer.querySelector('#loading-block');
+/* Блок с текстовым полем и результатом поиска */
+const filterBlock = homeworkContainer.querySelector('#filter-block');
+/* Текстовое поле для поиска по городам */
+const filterInput = homeworkContainer.querySelector('#filter-input');
+/* Блок с результатами поиска */
+const filterResult = homeworkContainer.querySelector('#filter-result');
 
- Функция должна принимать другую функцию (F) и некоторое количество дополнительных аргументов
- Функция должна привязать переданные аргументы к функции F и вернуть получившуюся функцию
+const button = document.createElement('button');
 
- Пример:
-   function sum(a, b) {
-     return a + b;
-   }
+button.innerHTML = 'Повторить';
+button.addEventListener('click', loadTowns)
 
-   var newSum = bindFunction(sum, 2, 4);
-
-   console.log(newSum()) выведет 6
- */
-function bindFunction(fn, ...rest) {
-    return fn.bind(null, ...rest)
-}
+filterInput.addEventListener('keyup', function(evt) {
+    // это обработчик нажатия кливиш в текстовом поле
+    evt.preventDefault();
+    search(evt.target.value);
+})
 
 export {
-    returnFirstArgument,
-    sumWithDefaults,
-    returnArgumentsArray,
-    returnFnResult,
-    returnCounter,
-    bindFunction
-}
+    loadTowns,
+    isMatching
+};
