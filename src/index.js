@@ -46,7 +46,7 @@ const listTable = homeworkContainer.querySelector('#list-table tbody');
 let searchValue = '';
 
 function handleSearch (searchValue) {
-    let re = new RegExp(searchValue, 'gi');
+    let re = new RegExp(searchValue);
 
     let currentCookies = document.cookie.split('; ');
     let showCookies = currentCookies.reduce((prev, next) => { 
@@ -170,8 +170,6 @@ addButton.addEventListener('click', (evt) => {
     document.cookie = `${name.value} = ${value.value}`;
 
     createTableItem(name.value, value.value, createButton);
-    name.value = '';
-    value.value = '';
     
     handleSearch(document.querySelector('#filter-name-input').value);
 });
