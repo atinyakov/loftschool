@@ -43,8 +43,62 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-filterNameInput.addEventListener('keyup', function() {
+let searchValue = '';
+
+function handleSearch (searchValue) {
+    let re = new RegExp(searchValue, 'gi');
+
+    let currentCookies = document.cookie.split('; ');
+    let showCookies = currentCookies.reduce((prev, next) => { 
+        let [name, value] = next.split('='); 
+
+        if (re.test(name)) {
+            prev[name] = value;
+        }
+
+        return prev;
+    }, {});
+
+    if (Object.getOwnPropertyNames(showCookies).length === 0) {
+        showCookies = currentCookies.reduce((prev, next) => { 
+            let [name, value] = next.split('='); 
+
+            if (re.test(value)) {
+                prev[name] = value;
+            }
+
+            return prev;
+        }, {});
+    }
+
+    if (showCookies) {
+        clearTable();
+        renderCookies(showCookies);
+    }
+}
+
+function clearTable() {
+    let tableContent = document.querySelectorAll('#list-table tbody tr');
+
+    tableContent.forEach(el => {
+        el.remove();
+    });
+}
+
+filterNameInput.addEventListener('keyup', function(evt) {
     // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
+    evt.preventDefault();
+
+    searchValue = evt.target.value;
+
+    if (searchValue !== '') {
+        handleSearch(searchValue);
+    } else {
+        clearTable();
+        let currentCookies = parseCookies();
+
+        renderCookies(currentCookies);
+    }   
 });
 
 function createButton () {
@@ -93,14 +147,18 @@ function parseCookies () {
     return cookies;
 }
 
-if (document.cookie.length !== 0) {
-    let currentCookies = parseCookies();
-
-    for (let name in currentCookies) {
-        if ({}.hasOwnProperty.call(currentCookies, name)) { 
-            createTableItem(name, currentCookies[name], createButton);
+function renderCookies (cookie) {
+    for (let name in cookie) {
+        if ({}.hasOwnProperty.call(cookie, name)) { 
+            createTableItem(name, cookie[name], createButton);
         }
     }
+}
+
+if ((document.cookie.length !== 0) && (searchValue === '')) {
+    let currentCookies = parseCookies();
+
+    renderCookies(currentCookies)
 }
 
 addButton.addEventListener('click', (evt) => {
@@ -114,4 +172,6 @@ addButton.addEventListener('click', (evt) => {
     createTableItem(name.value, value.value, createButton);
     name.value = '';
     value.value = '';
+    
+    handleSearch(document.querySelector('#filter-name-input').value);
 });
