@@ -1,110 +1,175 @@
-/* ДЗ 1 - Функции */
+/*
+ ДЗ 7 - Создать редактор cookie с возможностью фильтрации
+
+ 7.1: На странице должна быть таблица со списком имеющихся cookie. Таблица должна иметь следующие столбцы:
+   - имя
+   - значение
+   - удалить (при нажатии на кнопку, выбранная cookie удаляется из браузера и таблицы)
+
+ 7.2: На странице должна быть форма для добавления новой cookie. Форма должна содержать следующие поля:
+   - имя
+   - значение
+   - добавить (при нажатии на кнопку, в браузер и таблицу добавляется новая cookie с указанным именем и значением)
+
+ Если добавляется cookie с именем уже существующей cookie, то ее значение в браузере и таблице должно быть обновлено
+
+ 7.3: На странице должно быть текстовое поле для фильтрации cookie
+ В таблице должны быть только те cookie, в имени или значении которых, хотя бы частично, есть введенное значение
+ Если в поле фильтра пусто, то должны выводиться все доступные cookie
+ Если добавляемая cookie не соответсвует фильтру, то она должна быть добавлена только в браузер, но не в таблицу
+ Если добавляется cookie, с именем уже существующей cookie и ее новое значение не соответствует фильтру,
+ то ее значение должно быть обновлено в браузере, а из таблицы cookie должна быть удалена
+
+ Запрещено использовать сторонние библиотеки. Разрешено пользоваться только тем, что встроено в браузер
+ */
 
 /*
- Задание 1:
-
- 1.1: Добавьте к функции параметр с любым именем
- 1.2: Функция должна возвращать аргумент, переданный ей в качестве параметра
+ homeworkContainer - это контейнер для всех ваших домашних заданий
+ Если вы создаете новые html-элементы и добавляете их на страницу, то добавляйте их только в этот контейнер
 
  Пример:
-   returnFirstArgument(10) вернет 10
-   returnFirstArgument('привет') вернет `привет`
-
- Другими словами: функция должна возвращать в неизменном виде то, что поступает ей на вход
+   const newDiv = document.createElement('div');
+   homeworkContainer.appendChild(newDiv);
  */
-function returnFirstArgument(data) {
-    return data;
-}
+const homeworkContainer = document.querySelector('#homework-container');
+// текстовое поле для фильтрации cookie
+const filterNameInput = homeworkContainer.querySelector('#filter-name-input');
+// текстовое поле с именем cookie
+// const addNameInput = homeworkContainer.querySelector('#add-name-input');
+// текстовое поле со значением cookie
+// const addValueInput = homeworkContainer.querySelector('#add-value-input');
+// кнопка "добавить cookie"
+const addButton = homeworkContainer.querySelector('#add-button');
+// таблица со списком cookie
+const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-/*
- Задание 2:
+let searchValue = '';
 
- 2.1: Функция должна возвращать сумму переданных аргументов
+function handleSearch (searchValue) {
+    let re = new RegExp(searchValue);
 
- Пример:
-   sumWithDefaults(10, 20) вернет 30
-   sumWithDefaults(2, 4) вернет 6
+    let currentCookies = document.cookie.split('; ');
+    let showCookies = currentCookies.reduce((prev, next) => { 
+        let [name, value] = next.split('='); 
 
- 2.1 *: Значение по умолчанию для второго аргумента должно быть равно 100
+        if (re.test(name)) {
+            prev[name] = value;
+        }
 
- Пример:
-   sumWithDefaults(10) вернет 110
- */
-function sumWithDefaults(a, b = 100) {
-    return a + b;
-}
+        return prev;
+    }, {});
 
-/*
- Задание 3:
+    if (Object.getOwnPropertyNames(showCookies).length === 0) {
+        showCookies = currentCookies.reduce((prev, next) => { 
+            let [name, value] = next.split('='); 
 
- Функция должна принимать другую функцию и возвращать результат вызова этой функции
+            if (re.test(value)) {
+                prev[name] = value;
+            }
 
- Пример:
-   returnFnResult(() => 'привет') вернет 'привет'
- */
-function returnFnResult(fn) {
-    return fn();
-}
+            return prev;
+        }, {});
+    }
 
-/*
- Задание 4:
-
- Функция должна принимать число и возвращать новую функцию (F)
- При вызове функции F, переданное ранее число должно быть увеличено на единицу и возвращено из F
-
- Пример:
-   var f = returnCounter(10);
-
-   console.log(f()); // выведет 11
-   console.log(f()); // выведет 12
-   console.log(f()); // выведет 13
- */
-function returnCounter(number = 0) {
-    let start = number;
-
-    return function () {
-      
-        return ++start;
+    if (showCookies) {
+        clearTable();
+        renderCookies(showCookies);
     }
 }
 
-/*
- Задание 5 *:
+function clearTable() {
+    let tableContent = document.querySelectorAll('#list-table tbody tr');
 
- Функция должна возвращать все переданные ей аргументы в виде массива
- Количество переданных аргументов заранее неизвестно
-
- Пример:
-   returnArgumentsArray(1, 2, 3) вернет [1, 2, 3]
- */
-function returnArgumentsArray(...rest) {
-    return rest;
+    tableContent.forEach(el => {
+        el.remove();
+    });
 }
 
-/*
- Задание 6 *:
+filterNameInput.addEventListener('keyup', function(evt) {
+    // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
+    evt.preventDefault();
 
- Функция должна принимать другую функцию (F) и некоторое количество дополнительных аргументов
- Функция должна привязать переданные аргументы к функции F и вернуть получившуюся функцию
+    searchValue = evt.target.value;
 
- Пример:
-   function sum(a, b) {
-     return a + b;
-   }
+    if (searchValue !== '') {
+        handleSearch(searchValue);
+    } else {
+        clearTable();
+        let currentCookies = parseCookies();
 
-   var newSum = bindFunction(sum, 2, 4);
+        renderCookies(currentCookies);
+    }   
+});
 
-   console.log(newSum()) выведет 6
- */
-function bindFunction(fn, ...rest) {
-    return fn.bind(null, ...rest)
+function createButton () {
+    let button = document.createElement('button');
+
+    button.textContent = 'Удалить';
+    button.addEventListener('click', (evt) => {
+        let key = evt.target.closest('tr').firstChild.textContent;
+
+        document.cookie = `${key} = ''; max-age=0`;
+        evt.target.closest('tbody').removeChild(evt.target.closest('tr'));
+    })
+
+    return button;
 }
 
-export {
-    returnFirstArgument,
-    sumWithDefaults,
-    returnArgumentsArray,
-    returnFnResult,
-    returnCounter,
-    bindFunction
+function createTableItem () {
+    let tr = document.createElement('tr');
+
+    [...arguments].forEach(arg => {
+        let td = document.createElement('td');
+
+        if (typeof arg === 'function') {
+            td.appendChild(arg());
+        } else {
+            td.textContent = arg;
+        }
+        tr.appendChild(td);
+    })
+
+    listTable.appendChild(tr);
 }
+
+let cookies;
+
+function parseCookies () {
+    cookies = document.cookie.split('; ');
+    cookies = cookies.reduce((prev, next) => { 
+        let [name, value] = next.split('='); 
+
+        prev[name] = value;
+
+        return prev;
+    }, {});
+    
+    return cookies;
+}
+
+function renderCookies (cookie) {
+    for (let name in cookie) {
+        if ({}.hasOwnProperty.call(cookie, name)) { 
+            createTableItem(name, cookie[name], createButton);
+        }
+    }
+}
+
+if ((document.cookie.length !== 0) && (searchValue === '')) {
+    let currentCookies = parseCookies();
+
+    renderCookies(currentCookies)
+}
+
+addButton.addEventListener('click', (evt) => {
+    // здесь можно обработать нажатие на кнопку "добавить cookie"
+    evt.preventDefault();
+    let name = document.querySelector('#add-name-input');
+    let value = document.querySelector('#add-value-input');
+
+    document.cookie = `${name.value} = ${value.value}`;
+
+    createTableItem(name.value, value.value, createButton);
+    
+    handleSearch(document.querySelector('#filter-name-input').value);
+});
